@@ -1,0 +1,4 @@
+deluge-harness/
+*.pyc
+__pycache__/
+.env

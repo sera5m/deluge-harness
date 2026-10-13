@@ -1,0 +1,38 @@
+# LiteLLM config skeleton for Deluge
+# Live backends are filtered by the presence/heartbeat service.
+# OpenRouter remains permanent fallback.
+
+model_list:
+  - model_name: director
+    litellm_params:
+      model: openrouter/x-ai/grok-4
+      api_key: os.environ/OPENROUTER_API_KEY
+    model_info:
+      role: director
+
+  - model_name: coder
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b
+      api_base: http://ash-laptop:11434   # replaced dynamically when node is live
+    model_info:
+      role: coder
+
+  - model_name: vision
+    litellm_params:
+      model: ollama/qwen2.5vl:latest
+      api_base: http://ash-laptop:11434
+    model_info:
+      role: vision
+
+  - model_name: micro
+    litellm_params:
+      model: ollama/digitsflow/bonsai-8b:latest
+      api_base: http://scythe:11434
+    model_info:
+      role: micro
+
+router_settings:
+  routing_strategy: least-busy
+  num_retries: 2
+  timeout: 120
+  allowed_fails: 1

@@ -1,0 +1,31 @@
+# Example node registry (head maintains live version)
+nodes:
+  - name: scythe
+    hostname: scythe
+    role: head
+    availability: online
+    listed_availability: "24/7"
+    is_bulk_storage: true
+    capabilities:
+      models: []  # head may run light models; prefer workers for heavy
+      organs: ["ikitaku", "orchestrator", "notify"]
+      gpu: "GTX 1660 (6GB)"
+      cpu: "Ryzen 5 3600"
+      ram_gb: 31
+    endpoint: "http://scythe:11434"
+    notes: "Master. Authoritative state and project data. Liquid cooler; mild auto-OC via PBO recommended."
+
+  - name: ash-laptop
+    hostname: ash-laptop
+    role: worker
+    availability: offline
+    listed_availability: "when available (portable)"
+    is_bulk_storage: false
+    capabilities:
+      models: ["qwen2.5vl:latest", "qwen2.5-coder:7b", "deepseek-r1:8b", "qwen2.5:7b"]
+      organs: ["vision"]
+      gpu: "RX 7700S"
+      cpu: "Ryzen 9 7940HS"
+      ram_gb: 31
+    endpoint: "http://ash-laptop:11434"
+    notes: "Primary heavy worker when online. Strong for vision and coding models."
