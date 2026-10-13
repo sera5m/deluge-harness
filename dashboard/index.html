@@ -1,1 +1,979 @@
-UPDATED_DASHBOARD_PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DELUGE HARNESS — HEAD</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Doto:wght@400;700;900&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   00 — TOKENS
+   ============================================================ */
+@property --irid {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+:root{
+  --b0: #050505;
+  --b1: #0c0c0c;
+  --b2: #161616;
+  --b3: #212121;
+
+  --tx: #1a3a6b;   /* deep blue for body text */
+  --tm: #2a5a9a;   /* slightly lighter deep blue */
+  --title: #d4b5ff; /* lavender high-visibility for titles */
+  --red-overlay: #2A0000;
+
+  --vein-light: #8b949e;
+  --vein-dark:  #050505;
+
+  --irid-a: #00e5ff;
+  --irid-b: #ff2fd0;
+  --irid-c: #b6ff2e;
+  --irid-d: #7a2fff;
+
+  --display: 'Doto', 'Silkscreen', ui-monospace, monospace;
+  --pixel:   'Silkscreen', ui-monospace, monospace;
+
+  --wrap: min(1360px, 92vw);
+  --nav-h: 52px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--b0);
+  color:var(--tx);
+  font-family:var(--pixel);
+  font-size:12px;
+  line-height:1.75;
+  letter-spacing:.02em;
+  overflow-x:hidden;
+  -webkit-font-smoothing:none;
+  position:relative;
+}
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:var(--red-overlay);
+  opacity:0.32;
+  z-index:0;
+  pointer-events:none;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{list-style:none;padding:0}
+::selection{background:var(--irid-a);color:#000}
+
+.wrap{width:var(--wrap);margin-inline:auto}
+
+.field{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:var(--b0);
+}
+.field::before{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size:4px 4px;
+  image-rendering:pixelated;
+  opacity:.4;
+}
+.field::after{
+  content:'';position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='1' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size:4px 4px;
+  image-rendering:pixelated;
+  -webkit-mask-image:repeating-linear-gradient(118deg, transparent 0 260px, #000 260px 340px);
+          mask-image:repeating-linear-gradient(118deg, transparent 0 260px, #000 260px 340px);
+  opacity:.55;
+}
+
+.irid{position:relative}
+.irid::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  padding:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a),
+    var(--irid-b),
+    var(--irid-c),
+    var(--irid-d),
+    var(--irid-a));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  animation:irid-rotate 14s linear infinite;
+}
+@keyframes irid-rotate{ to{ --irid:360deg } }
+
+.veins-wrap{
+  position:absolute;top:0;left:0;right:0;
+  height:56px;
+  overflow:hidden;
+  pointer-events:none;
+}
+.veins{width:100%;height:100%;display:block}
+.v-l{stroke:var(--vein-light)}
+.v-d{stroke:var(--vein-dark)}
+.v-fl{fill:var(--vein-light)}
+.v-fd{fill:var(--vein-dark)}
+
+.nav{
+  position:sticky;top:0;z-index:100;
+  height:var(--nav-h);
+  display:flex;align-items:center;gap:2rem;
+  padding-inline:4vw;
+  background:var(--b0);
+  border-bottom:1px solid transparent;
+}
+.nav::after{
+  content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  animation:irid-rotate 20s linear infinite;
+}
+.brand{display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.brand svg{width:18px;height:18px;stroke:var(--tx);fill:none;stroke-width:1}
+.brand span{
+  font-family:var(--display);font-weight:900;
+  font-size:14px;letter-spacing:.14em;
+  color:var(--title);
+}
+.nav__links{display:flex;gap:1.6rem;margin-left:auto}
+.nav__links a{
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--tm);transition:color .15s;
+}
+.nav__links a:hover{color:var(--title)}
+.nav__status{
+  font-family:var(--pixel);font-size:9px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--tm);
+  border:1px solid var(--b2);padding:.35rem .6rem;
+  flex-shrink:0;
+}
+
+.hero{
+  position:relative;z-index:1;
+  width:var(--wrap);margin-inline:auto;
+  min-height:calc(100svh - var(--nav-h));
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;gap:4rem;
+  padding-block:clamp(4rem,10vh,8rem);
+  border-top:1px solid transparent;
+}
+.hero::before{
+  content:'';position:absolute;top:-1px;left:0;right:0;height:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  animation:irid-rotate 16s linear infinite;
+}
+.hero__inner{position:relative;z-index:2}
+
+.eyebrow{
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.32em;text-transform:uppercase;
+  color:var(--tm);margin-bottom:1.6rem;
+  display:flex;align-items:center;gap:.7rem;
+}
+.eyebrow::before{
+  content:'';width:28px;height:1px;background:var(--tm);
+}
+
+.hero__title{
+  font-family:var(--display);
+  font-weight:900;
+  font-size:clamp(3rem, 11vw, 9rem);
+  line-height:.86;
+  letter-spacing:-.01em;
+  text-transform:uppercase;
+  color:var(--title);
+  display:flex;flex-direction:column;
+}
+.hero__title em{
+  font-style:normal;
+  color:var(--b3);
+}
+
+.hero__sub{
+  margin-top:1.8rem;max-width:52ch;
+  font-family:var(--pixel);font-size:11px;
+  line-height:2;color:var(--tm);
+}
+
+.hero__actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:2.4rem}
+
+.port{
+  position:relative;
+  display:inline-flex;align-items:center;gap:.6em;
+  padding:.9em 1.6em;
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.24em;text-transform:uppercase;
+  color:var(--tx);
+  background:transparent;
+  cursor:pointer;border:0;
+  transition:background .18s, color .18s;
+}
+.port::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  padding:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask-composite:exclude;
+  animation:irid-rotate 9s linear infinite;
+}
+.port:hover{background:var(--b2);color:#fff}
+.port--solid{background:var(--b1)}
+.port--solid:hover{background:var(--b3)}
+
+.hero__meta{
+  display:flex;flex-wrap:wrap;gap:2.4rem;
+  margin-top:3rem;padding-top:1.4rem;
+  border-top:1px solid var(--b2);
+}
+.hero__meta li{
+  display:flex;flex-direction:column;gap:.3rem;
+  font-family:var(--pixel);font-size:10px;
+}
+.hero__meta span{
+  font-size:8px;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--tm);
+}
+
+.sigil{
+  width:clamp(220px,26vw,380px);
+  aspect-ratio:1;
+  opacity:.9;
+  position:relative;z-index:1;
+}
+.sigil g{fill:none;stroke:var(--vein-light);stroke-width:1}
+
+.chassis{
+  position:relative;z-index:1;
+  width:var(--wrap);margin-inline:auto;
+  padding-block:clamp(4rem,9vh,7rem);
+}
+.chassis__head{
+  display:flex;align-items:baseline;gap:1.4rem;
+  padding-bottom:1.2rem;margin-bottom:3rem;
+  border-bottom:1px solid var(--b2);
+}
+.chassis__idx{
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.24em;color:var(--tm);
+  border:1px solid var(--b2);padding:.25rem .5rem;
+}
+.chassis__title{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(1rem,2.6vw,1.7rem);
+  letter-spacing:.12em;text-transform:uppercase;
+  color:var(--title);
+}
+.chassis__note{
+  margin-left:auto;
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--tm);
+}
+
+.grafts{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1px;
+  background:var(--b1);
+}
+.graft{
+  position:relative;
+  display:flex;flex-direction:column;gap:1rem;
+  padding:2rem 1.6rem 1.6rem;
+  background-color:var(--b0);
+  background-image:
+    linear-gradient(to bottom,
+      var(--b2) 0 1px,
+      var(--b1) 1px 3px,
+      transparent 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4' shape-rendering='crispEdges'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
+  background-size:100% 3px, 4px 4px;
+  background-repeat:no-repeat, repeat;
+  background-blend-mode:normal, overlay;
+  image-rendering:pixelated;
+  border-top:1px solid transparent;
+}
+.graft::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  animation:irid-rotate 18s linear infinite;
+}
+.graft::after{
+  content:'';position:absolute;top:0;right:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,
+    var(--irid-a) 0%,
+    var(--irid-d) 40%,
+    var(--irid-b) 70%,
+    transparent 100%);
+  opacity:.35;
+}
+.graft__num{
+  font-family:var(--pixel);font-size:8px;
+  letter-spacing:.24em;color:var(--tm);
+}
+.graft__thumb{
+  aspect-ratio:16/9;
+  background-color:var(--b1);
+  background-image:
+    linear-gradient(var(--b2) 1px, transparent 1px),
+    linear-gradient(90deg, var(--b2) 1px, transparent 1px);
+  background-size:16px 16px;
+  background-position:0 0, 0 0;
+  border:1px solid var(--b2);
+  image-rendering:pixelated;
+}
+.graft__title{
+  font-family:var(--pixel);font-weight:700;
+  font-size:12px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--title);
+}
+.graft__text{
+  font-family:var(--pixel);font-size:10px;
+  line-height:1.9;color:var(--tm);
+}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:auto}
+.tags li{
+  font-family:var(--pixel);font-size:8px;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--tm);border:1px solid var(--b2);
+  padding:.25rem .5rem;
+}
+.graft__link{
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.22em;text-transform:uppercase;
+  color:var(--tx);
+}
+.graft__link:hover{color:#fff}
+
+.spec{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(2rem,5vw,4rem)}
+.spec__title{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(1.2rem,3vw,2rem);
+  letter-spacing:.04em;text-transform:uppercase;
+  color:var(--title);margin-bottom:1.4rem;line-height:1.05;
+}
+.spec__text{
+  font-family:var(--pixel);font-size:11px;
+  line-height:2;color:var(--tm);
+}
+.spec__text + .spec__text{margin-top:1.2rem}
+
+.spec__panel{
+  position:relative;
+  padding:4.4rem 1.6rem 1.4rem;
+  background-color:var(--b0);
+  background-image:
+    linear-gradient(to bottom,
+      var(--b2) 0 1px,
+      var(--b1) 1px 3px,
+      transparent 3px);
+  background-repeat:no-repeat;
+  background-size:100% 3px;
+  border-top:1px solid transparent;
+}
+.spec__panel::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  animation:irid-rotate 12s linear infinite;
+}
+.spec__panel dl{
+  display:grid;grid-template-columns:auto 1fr;
+  gap:.6rem 1.2rem;
+}
+.spec__panel dt{
+  font-family:var(--pixel);font-size:9px;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--tm);
+}
+.spec__panel dd{
+  font-family:var(--pixel);font-size:10px;
+  color:var(--tx);text-align:right;
+}
+.spec__panel dd span{
+  display:block;height:2px;margin-top:.35rem;
+  background-image:repeating-linear-gradient(
+    to right,
+    var(--vein-light) 0 4px,
+    transparent 4px 6px
+  );
+  image-rendering:pixelated;
+}
+
+.foot{
+  position:relative;z-index:1;
+  margin-top:clamp(3rem,8vh,6rem);
+  padding-block:3rem 2rem;
+  background:var(--b0);
+  border-top:1px solid transparent;
+}
+.foot::before{
+  content:'';position:absolute;top:-1px;left:0;right:0;height:1px;
+  background:conic-gradient(from var(--irid),
+    var(--irid-a), var(--irid-b), var(--irid-c), var(--irid-d), var(--irid-a));
+  animation:irid-rotate 24s linear infinite;
+}
+.foot__grid{
+  width:var(--wrap);margin-inline:auto;
+  display:grid;grid-template-columns:1.4fr repeat(3,1fr);
+  gap:2.4rem;
+}
+.foot__col h4{
+  font-family:var(--pixel);font-size:8px;
+  letter-spacing:.26em;text-transform:uppercase;
+  color:var(--tm);margin-bottom:1rem;font-weight:400;
+}
+.foot__col li + li{margin-top:.45rem}
+.foot__col a{
+  font-family:var(--pixel);font-size:10px;
+  color:var(--tx);transition:color .15s;
+}
+.foot__col a:hover{color:#fff}
+.foot__col p{
+  font-family:var(--pixel);font-size:10px;
+  color:var(--tm);max-width:34ch;line-height:1.9;
+  margin-top:.8rem;
+}
+.foot__bar{
+  width:var(--wrap);margin:2.4rem auto 0;
+  padding-top:1.2rem;border-top:1px solid var(--b2);
+  display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;
+  font-family:var(--pixel);font-size:8px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--tm);
+}
+
+@media (max-width:1040px){
+  .spec{grid-template-columns:1fr}
+  .foot__grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:860px){
+  .nav__links{display:none}
+  .hero{grid-template-columns:1fr;gap:3rem}
+  .sigil{width:min(56vw,260px)}
+}
+@media (max-width:600px){
+  :root{--nav-h:46px}
+  .nav__status{display:none}
+  .foot__grid{grid-template-columns:1fr}
+  .chassis__note{display:none}
+}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.001ms !important;
+  }
+}
+
+/* status indicators */
+.status-online { color: #b6ff2e; }
+.status-offline { color: #ff2fd0; }
+.status-paused { color: #7a2fff; }
+</style>
+</head>
+
+<body>
+
+<div class="field" aria-hidden="true"></div>
+
+<header class="nav">
+  <a class="brand" href="#top">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 6v88M6 50h88"/>
+      <path d="M50 18 L82 50 L50 82 L18 50 Z"/>
+      <path d="M50 34 L66 50 L50 66 L34 50 Z"/>
+    </svg>
+    <span>DELUGE</span>
+  </a>
+
+  <nav class="nav__links" aria-label="Internal">
+    <a href="#chassis-01">NODES</a>
+    <a href="#chassis-graph">GRAPH</a>
+    <a href="#chassis-02">MODELS</a>
+    <a href="#chassis-03">LOG</a>
+    <a href="#chassis-04">TASKS</a>
+  </nav>
+
+  <div class="nav__status">HEAD ONLINE</div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="veins-wrap" aria-hidden="true">
+      <svg class="veins" viewBox="0 0 800 56" preserveAspectRatio="none">
+        <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-d">
+          <path d="M0 0 v10 h14 v18"/>
+          <path d="M60 0 v22 h-10 v14"/>
+          <path d="M130 0 v8 h20 v20 h12"/>
+          <path d="M240 0 v30 h-16 v10"/>
+          <path d="M360 0 v14 h22 v18"/>
+          <path d="M470 0 v24 h-14 v12"/>
+          <path d="M560 0 v10 h18 v22"/>
+          <path d="M680 0 v28 h-20 v10"/>
+        </g>
+        <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-l">
+          <path d="M20 0 v16 h-8 v22"/>
+          <path d="M95 0 v26 h14 v10"/>
+          <path d="M170 0 v6 h-12 v26"/>
+          <path d="M290 0 v20 h18 v16"/>
+          <path d="M410 0 v12 h-18 v24"/>
+          <path d="M510 0 v32 h12 v8"/>
+          <path d="M620 0 v16 h-16 v22"/>
+          <path d="M740 0 v22 h14 v12"/>
+        </g>
+        <g fill="none" stroke-width="1" class="v-l">
+          <circle cx="14" cy="28" r="2"/>
+          <circle cx="109" cy="36" r="2"/>
+          <circle cx="308" cy="36" r="2"/>
+          <circle cx="392" cy="36" r="2"/>
+          <circle cx="604" cy="38" r="2"/>
+        </g>
+        <g fill="none" stroke-width="1" class="v-d">
+          <rect x="158" y="32" width="4" height="4"/>
+          <rect x="522" y="40" width="4" height="4"/>
+          <rect x="754" y="34" width="4" height="4"/>
+        </g>
+        <g shape-rendering="crispEdges" class="v-fl">
+          <path d="M228 44 l3 -5 l3 5 z"/>
+          <path d="M448 42 l3 -5 l3 5 z"/>
+          <path d="M664 44 l3 -5 l3 5 z"/>
+        </g>
+        <g shape-rendering="crispEdges" class="v-fd">
+          <path d="M56 42 l3 -5 l3 5 z"/>
+          <path d="M336 44 l3 -5 l3 5 z"/>
+          <path d="M586 42 l3 -5 l3 5 z"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hero__inner">
+      <p class="eyebrow">INTERNAL / HEAD NODE</p>
+
+      <h1 class="hero__title">
+        <span>DELUGE</span>
+        <em>HARNESS</em>
+      </h1>
+
+      <p class="hero__sub">Orchestration layer for local multi-machine models, OpenRouter capacity, and specialized organs (ikitaku reasoner + future deterministic tools). Dynamic workers with heartbeat-based presence. Directors prefer uncensored; sub-agents may be censored.</p>
+
+      <div class="hero__actions">
+        <a class="port port--solid" href="#chassis-01">NODE STATUS</a>
+        <a class="port" href="#chassis-03">LIVE LOG</a>
+      </div>
+
+      <ul class="hero__meta">
+        <li><span>GATEWAY</span>LiteLLM</li>
+        <li><span>SPECIALIST</span>ikitaku</li>
+        <li><span>HITL</span>Telegram</li>
+      </ul>
+    </div>
+
+    <!-- sigil — load capacity rings (concentric, up to 32 nodes) -->
+    <svg class="sigil" viewBox="0 0 400 400" aria-hidden="true" id="load-sigil">
+      <circle cx="200" cy="200" r="180" fill="none" stroke="var(--tm)" stroke-width="1" opacity="0.3"/>
+      <circle cx="200" cy="200" r="160" fill="none" stroke="#1a3a6b" stroke-width="8" stroke-dasharray="502 1004" opacity="0.8"/>
+      <circle cx="200" cy="200" r="140" fill="none" stroke="#2a5a9a" stroke-width="6" stroke-dasharray="440 880" opacity="0.7"/>
+      <circle cx="200" cy="200" r="120" fill="none" stroke="#3a7acc" stroke-width="5" stroke-dasharray="377 754" opacity="0.6"/>
+      <circle cx="200" cy="200" r="100" fill="none" stroke="#4a9aff" stroke-width="4" stroke-dasharray="314 628" opacity="0.5"/>
+      <text x="200" y="205" text-anchor="middle" fill="var(--title)" font-family="var(--display)" font-size="28" font-weight="900">42%</text>
+      <text x="200" y="230" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="8">LOAD</text>
+      <path d="M200 20 v360 M20 200 h360" fill="none" stroke="var(--vein-light)" stroke-width="1" opacity="0.2"/>
+    </svg>
+  </section>
+
+  <section class="chassis" id="chassis-01">
+    <div class="chassis__head">
+      <span class="chassis__idx">01</span>
+      <h2 class="chassis__title">ACTIVE NODES</h2>
+      <span class="chassis__note">HEARTBEAT / PRESENCE</span>
+    </div>
+
+    <div class="grafts">
+      <article class="graft">
+        <span class="graft__num">HEAD</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">MASTER SERVER</h3>
+        <p class="graft__text">Always-on orchestrator, LiteLLM gateway, ikitaku, dashboard, Telegram. Tailscale endpoint.</p>
+        <ul class="tags"><li>ONLINE</li><li>CORE</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+
+      <article class="graft">
+        <span class="graft__num">WORKER-A</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">DESKTOP A</h3>
+        <p class="graft__text">Ollama: qwen2.5-coder, deepseek-r1, qwen2.5vl. High availability when powered.</p>
+        <ul class="tags"><li class="status-online">ONLINE</li><li>CODING</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+
+      <article class="graft">
+        <span class="graft__num">WORKER-B</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">FRIEND NODE</h3>
+        <p class="graft__text">Shared compute. Bonsai-8b + light models. Pauses when owner active. Heartbeat required.</p>
+        <ul class="tags"><li class="status-paused">PAUSED</li><li>SHARED</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+
+      <article class="graft">
+        <span class="graft__num">WORKER-C</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">LAPTOP</h3>
+        <p class="graft__text">Intermittent. Vision + small agents. Registers on connect via Tailscale.</p>
+        <ul class="tags"><li class="status-offline">OFFLINE</li><li>MOBILE</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+
+      <article class="graft">
+        <span class="graft__num">OPENROUTER</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">CLOUD CAPACITY</h3>
+        <p class="graft__text">Free models + Grok for hard planning. Fallback when local capacity low or directors needed.</p>
+        <ul class="tags"><li>ONLINE</li><li>CAPACITY</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+
+      <article class="graft">
+        <span class="graft__num">IKITAKU</span>
+        <div class="graft__thumb" aria-hidden="true"></div>
+        <h3 class="graft__title">REASONER</h3>
+        <p class="graft__text">Deterministic layered reasoner. Stimulus bags → hypotheses, associations, thought-trace. Always available on head.</p>
+        <ul class="tags"><li>ONLINE</li><li>SPECIALIST</li></ul>
+        <a class="graft__link" href="#">DETAILS →</a>
+      </article>
+    </div>
+  </section>
+
+  <section class="chassis" id="chassis-graph">
+    <div class="chassis__head">
+      <span class="chassis__idx">GRAPH</span>
+      <h2 class="chassis__title">NODE MESH</h2>
+      <span class="chassis__note">HEAD + CLIENTS</span>
+    </div>
+
+    <div class="spec__panel" style="padding:2rem; min-height:420px; position:relative;">
+      <svg id="node-graph" viewBox="0 0 800 400" style="width:100%; height:380px; background:transparent;" aria-label="Node connection graph">
+        <!-- connections -->
+        <line x1="400" y1="80" x2="180" y2="220" stroke="var(--vein-light)" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="400" y1="80" x2="400" y2="260" stroke="var(--vein-light)" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="400" y1="80" x2="620" y2="220" stroke="var(--vein-light)" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="400" y1="80" x2="400" y2="340" stroke="var(--irid-a)" stroke-width="1" opacity="0.6"/>
+
+        <!-- activity dots (animated) -->
+        <circle r="3" fill="var(--irid-a)">
+          <animateMotion dur="4s" repeatCount="indefinite" path="M400,80 L180,220"/>
+        </circle>
+        <circle r="3" fill="var(--irid-c)">
+          <animateMotion dur="5s" repeatCount="indefinite" path="M400,80 L620,220"/>
+        </circle>
+        <circle r="3" fill="var(--irid-b)">
+          <animateMotion dur="6s" repeatCount="indefinite" path="M400,80 L400,340"/>
+        </circle>
+
+        <!-- head -->
+        <circle cx="400" cy="80" r="18" fill="var(--b2)" stroke="var(--irid-a)" stroke-width="1.5"/>
+        <text x="400" y="84" text-anchor="middle" fill="var(--tx)" font-family="var(--pixel)" font-size="9">HEAD</text>
+        <text x="400" y="110" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="8">SCYTHE</text>
+
+        <!-- clients -->
+        <circle cx="180" cy="220" r="14" fill="var(--b1)" stroke="var(--vein-light)" stroke-width="1"/>
+        <text x="180" y="224" text-anchor="middle" fill="var(--tx)" font-family="var(--pixel)" font-size="8">ASH</text>
+        <text x="180" y="246" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="7">WORKER</text>
+
+        <circle cx="400" cy="260" r="14" fill="var(--b1)" stroke="var(--vein-light)" stroke-width="1"/>
+        <text x="400" y="264" text-anchor="middle" fill="var(--tx)" font-family="var(--pixel)" font-size="8">CLIENT</text>
+        <text x="400" y="286" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="7">PAUSED</text>
+
+        <circle cx="620" cy="220" r="14" fill="var(--b1)" stroke="var(--vein-light)" stroke-width="1"/>
+        <text x="620" y="224" text-anchor="middle" fill="var(--tx)" font-family="var(--pixel)" font-size="8">NODE</text>
+        <text x="620" y="246" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="7">ONLINE</text>
+
+        <circle cx="400" cy="340" r="12" fill="var(--b0)" stroke="var(--irid-d)" stroke-width="1"/>
+        <text x="400" y="344" text-anchor="middle" fill="var(--tm)" font-family="var(--pixel)" font-size="7">OR</text>
+      </svg>
+      <p class="spec__text" style="margin-top:1rem; text-align:center;">Head at center. Clients report in via Tailscale. Animated dots show active delegation.</p>
+    </div>
+  </section>
+
+  <section class="chassis" id="chassis-02">
+    <div class="chassis__head">
+      <span class="chassis__idx">02</span>
+      <h2 class="chassis__title">MODEL POOL</h2>
+      <span class="chassis__note">LOCAL + ROUTER</span>
+    </div>
+
+    <div class="spec">
+      <div>
+        <h3 class="spec__title">DIRECTORS & WORKERS</h3>
+        <p class="spec__text">Directors prefer uncensored or lightly ablated models (Ajax 9B candidate, Grok). Coding and sub-agents can be censored. Vision for screenshot verification of work products.</p>
+        <p class="spec__text">LiteLLM groups models by role. Health checks + presence heartbeats remove offline workers from the pool automatically. Fallbacks to OpenRouter when local capacity drops.</p>
+      </div>
+
+      <aside class="spec__panel">
+        <div class="veins-wrap" aria-hidden="true">
+          <svg class="veins" viewBox="0 0 800 56" preserveAspectRatio="none">
+            <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-d">
+              <path d="M0 0 v14 h18 v16"/>
+              <path d="M110 0 v26 h-12 v12"/>
+              <path d="M250 0 v10 h22 v20"/>
+              <path d="M400 0 v28 h-18 v10"/>
+              <path d="M540 0 v16 h16 v18"/>
+              <path d="M680 0 v22 h-14 v14"/>
+            </g>
+            <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-l">
+              <path d="M40 0 v20 h-10 v20"/>
+              <path d="M170 0 v12 h18 v24"/>
+              <path d="M320 0 v24 h-14 v12"/>
+              <path d="M470 0 v8 h20 v22"/>
+              <path d="M610 0 v30 h-12 v8"/>
+              <path d="M740 0 v18 h14 v16"/>
+            </g>
+            <g fill="none" stroke-width="1" class="v-l">
+              <circle cx="26" cy="30" r="2"/>
+              <circle cx="188" cy="36" r="2"/>
+              <circle cx="306" cy="36" r="2"/>
+              <circle cx="490" cy="30" r="2"/>
+            </g>
+            <g fill="none" stroke-width="1" class="v-d">
+              <rect x="128" y="32" width="4" height="4"/>
+              <rect x="398" y="38" width="4" height="4"/>
+              <rect x="680" y="36" width="4" height="4"/>
+            </g>
+            <g shape-rendering="crispEdges" class="v-fl">
+              <path d="M232 42 l3 -5 l3 5 z"/>
+              <path d="M562 44 l3 -5 l3 5 z"/>
+            </g>
+            <g shape-rendering="crispEdges" class="v-fd">
+              <path d="M78 44 l3 -5 l3 5 z"/>
+              <path d="M420 42 l3 -5 l3 5 z"/>
+            </g>
+          </svg>
+        </div>
+
+        <dl>
+          <dt>qwen2.5vl</dt><dd>VISION<span style="width:70%"></span></dd>
+          <dt>deepseek-r1:8b</dt><dd>REASON<span style="width:85%"></span></dd>
+          <dt>qwen2.5-coder:7b</dt><dd>CODE<span style="width:90%"></span></dd>
+          <dt>bonsai-8b</dt><dd>MICRO<span style="width:45%"></span></dd>
+          <dt>ajax-9b</dt><dd>DIRECTOR<span style="width:60%"></span></dd>
+          <dt>grok (web)</dt><dd>HARD PLAN<span style="width:95%"></span></dd>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <section class="chassis" id="chassis-03">
+    <div class="chassis__head">
+      <span class="chassis__idx">03</span>
+      <h2 class="chassis__title">EVENT LOG</h2>
+      <span class="chassis__note">TAIL / HEARTBEATS</span>
+    </div>
+
+    <div class="spec__panel" style="padding-top:2rem">
+      <div class="spec__text" style="color:var(--tx)">
+        <div>> [HEAD] LiteLLM gateway ready — models registered from active workers</div>
+        <div>> [WORKER-A] heartbeat OK — coder + r1 + vl online</div>
+        <div>> [WORKER-B] paused by owner — removed from pool</div>
+        <div>> [ORCH] task routed to ikitaku for constraint check</div>
+        <div>> <span style="display:inline-block;width:8px;height:12px;background:var(--vein-light);vertical-align:-2px"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chassis" id="chassis-04">
+    <div class="chassis__head">
+      <span class="chassis__idx">04</span>
+      <h2 class="chassis__title">CURRENT TASKS</h2>
+      <span class="chassis__note">ORCHESTRATOR</span>
+    </div>
+
+    <div class="spec">
+      <div>
+        <h3 class="spec__title">STEP-WISE EXECUTION</h3>
+        <p class="spec__text">Orchestrator decomposes goals, routes to specialists (coding models, ikitaku, vision for verification), updates state, and escalates to Telegram on high-impact or low-confidence steps. Git worktrees keep autonomous changes isolated.</p>
+        <div class="hero__actions">
+          <a class="port port--solid" href="#">NEW TASK</a>
+          <a class="port" href="#">APPROVAL QUEUE</a>
+        </div>
+      </div>
+
+      <aside class="spec__panel">
+        <div class="veins-wrap" aria-hidden="true">
+          <svg class="veins" viewBox="0 0 800 56" preserveAspectRatio="none">
+            <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-l">
+              <path d="M0 0 v18 h16 v22"/>
+              <path d="M140 0 v24 h-14 v14"/>
+              <path d="M300 0 v12 h20 v22"/>
+              <path d="M460 0 v28 h-16 v10"/>
+              <path d="M620 0 v16 h18 v20"/>
+            </g>
+            <g fill="none" stroke-width="1" shape-rendering="crispEdges" class="v-d">
+              <path d="M70 0 v20 h-12 v20"/>
+              <path d="M220 0 v10 h18 v26"/>
+              <path d="M380 0 v24 h-14 v14"/>
+              <path d="M540 0 v14 h18 v22"/>
+              <path d="M700 0 v26 h-12 v10"/>
+            </g>
+            <g fill="none" stroke-width="1" class="v-l">
+              <circle cx="16" cy="40" r="2"/>
+              <circle cx="240" cy="36" r="2"/>
+              <circle cx="478" cy="38" r="2"/>
+            </g>
+            <g fill="none" stroke-width="1" class="v-d">
+              <rect x="126" y="38" width="4" height="4"/>
+              <rect x="544" y="36" width="4" height="4"/>
+            </g>
+            <g shape-rendering="crispEdges" class="v-fl">
+              <path d="M320 44 l3 -5 l3 5 z"/>
+              <path d="M638 44 l3 -5 l3 5 z"/>
+            </g>
+            <g shape-rendering="crispEdges" class="v-fd">
+              <path d="M200 42 l3 -5 l3 5 z"/>
+              <path d="M430 44 l3 -5 l3 5 z"/>
+            </g>
+          </svg>
+        </div>
+
+        <dl>
+          <dt>ACTIVE</dt><dd>2</dd>
+          <dt>QUEUED</dt><dd>5</dd>
+          <dt>APPROVALS</dt><dd>1</dd>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="foot__grid">
+
+    <div class="foot__col">
+      <a class="brand" href="#top">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <path d="M50 6v88M6 50h88"/>
+          <path d="M50 18 L82 50 L50 82 L18 50 Z"/>
+        </svg>
+        <span>DELUGE</span>
+      </a>
+      <p>Internal head dashboard. Presence-aware multi-machine orchestration. Specialists + LLMs + HITL.</p>
+    </div>
+
+    <div class="foot__col">
+      <h4>NODES</h4>
+      <ul>
+        <li><a href="#">Head</a></li>
+        <li><a href="#">Workers</a></li>
+        <li><a href="#">Presence</a></li>
+      </ul>
+    </div>
+
+    <div class="foot__col">
+      <h4>ORGANS</h4>
+      <ul>
+        <li><a href="#">ikitaku</a></li>
+        <li><a href="#">Vision</a></li>
+        <li><a href="#">Notify</a></li>
+      </ul>
+    </div>
+
+    <div class="foot__col">
+      <h4>SYSTEM</h4>
+      <ul>
+        <li><a href="#">LiteLLM</a></li>
+        <li><a href="#">State</a></li>
+        <li><a href="#">Docs</a></li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="foot__bar">
+    <span>DELUGE HARNESS — INTERNAL</span>
+    <span>HEAD / TAILSCALE</span>
+  </div>
+</footer>
+
+<script>
+// Live node fetch from presence receiver (http://scythe:8765/nodes)
+async function refreshNodes() {
+  try {
+    const res = await fetch('http://scythe:8765/nodes');
+    if (!res.ok) return;
+    const data = await res.json();
+    const nodes = Object.values(data.nodes || {});
+    const log = document.querySelector('#chassis-03 .spec__text');
+    if (log) {
+      const lines = nodes.map(n => 
+        `> [${n.name}] ${n.availability} — models: ${(n.models||[]).join(', ') || 'none'} — last: ${n.last_heartbeat||'?'}`
+      );
+      log.innerHTML = lines.join('<br>') || '> no nodes yet';
+    }
+
+    // Update concentric load rings (up to 32)
+    const sigil = document.getElementById('load-sigil');
+    if (sigil && nodes.length) {
+      // Clear previous dynamic rings (keep first few static or rebuild)
+      const existing = sigil.querySelectorAll('circle.dynamic-ring');
+      existing.forEach(el => el.remove());
+
+      const online = nodes.filter(n => n.availability === 'online').slice(0, 32);
+      const maxR = 170;
+      const step = maxR / Math.max(online.length, 1);
+
+      online.forEach((n, i) => {
+        const r = maxR - (i * step);
+        const load = Math.min(100, (n.models || []).length * 15 + 20); // proxy load from model count
+        const circ = 2 * Math.PI * r;
+        const dash = (load / 100) * circ;
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', 200);
+        circle.setAttribute('cy', 200);
+        circle.setAttribute('r', r);
+        circle.setAttribute('fill', 'none');
+        circle.setAttribute('stroke', `hsl(${210 + i * 8}, 60%, ${40 + i * 2}%)`);
+        circle.setAttribute('stroke-width', Math.max(2, 8 - i * 0.3));
+        circle.setAttribute('stroke-dasharray', `${dash} ${circ}`);
+        circle.setAttribute('opacity', 0.7);
+        circle.classList.add('dynamic-ring');
+        sigil.insertBefore(circle, sigil.querySelector('text'));
+      });
+
+      // Update center %
+      const avg = online.length ? Math.round(online.reduce((s, n) => s + ((n.models||[]).length * 15 + 20), 0) / online.length) : 0;
+      const pct = sigil.querySelector('text');
+      if (pct) pct.textContent = avg + '%';
+    }
+  } catch (e) {
+    console.warn('presence fetch failed', e);
+  }
+}
+setInterval(refreshNodes, 10000);
+refreshNodes();
+</script>
+
+</body>
+</html>
