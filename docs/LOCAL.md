@@ -1,40 +1,45 @@
 # Local harness
 
 The multi-machine head/worker path is deprecated for now. One machine.
-Ollama on localhost. The classification task needs a long time range, so
-the harness keeps a workspace and a summary instead of a growing chat.
+Ollama on localhost.
+
+## Roles
+
+- Director: `deepseek-r1:32b`. Does the work.
+- Summarizer: `digitsflow/bonsai-8b:latest`. Pauses the chat, writes a
+  short summary, then Engels compresses that summary to slots.
 
 ## Pieces
 
-- `local/prompt.py` — load a prompt file. The system text is a file, not
-  a string in the script.
-- `local/workspace.py` — a small directory the model can list, read, and
-  write. Nothing outside it.
-- `local/summarize.py` — when the chat crosses a token budget, pause,
-  call a small model, replace the middle with the summary, continue.
+- `local/roles.py` — the two model names.
+- `local/prompt.py` — system text is a file.
+- `local/workspace.py` — list/read/write inside one directory.
+- `local/summarize.py` — pause, bonsai summarizes, keep the tail.
+- `local/engels.py` — summary → JSON slots (`goal`, `decisions`, `open`,
+  `files`, `next`). Written into the workspace.
+- `local/tasks.py` + `local/run_workload.py` — a workload is a list of
+  steps. Each step runs, then Engels writes `engels-<id>.json`.
 
 ## Replicant, used not copied
 
-Project Replicant (Walker-Industries-RnD, permission granted) has two
-clients: a summarizer and Engels. The pattern, not the Unity code:
+Project Replicant has two clients: a summarizer and Engels. We use the
+shape. Summarizer is bonsai. Engels slots are JSON in the workspace, so
+the galaxy viewer can read them later.
 
-- summarizer: a small model, a fixed prompt, ChatML in, short text out
-- Engels: structured slots (name, likes, notes) rather than free prose
+## Memory spaces
 
-We use that shape. The small model is `qwen2.5:7b` or `bonsai-8b`.
-Engels slots land in the workspace as JSON, so the galaxy viewer can
-read them later.
+Ikitaku keeps several memory files under `ikitaku-engine/memory/spaces/`.
+`spaces.py` picks the active one. Each save copies the current
+`graph.json` to `graph.<n>.json` first, so a bad teaching pass can be
+restored.
 
-## Loop
+## First workload
 
-```
-load prompt
-open workspace
-while task not done:
-    if chat over budget: pause, summarize, resume
-    call model with prompt + workspace listing + summary + last turns
-    if model asks for a file: read/write inside workspace only
-    if model asks for a compare: call iki_think, append the reading
+`workloads/language.json` builds the language file in four steps:
+verbs, nouns, compositions, graph.
+
+```bash
+python -m local.run_workload workloads/language.json --workspace ws/lang
 ```
 
 ## What is not in this pass
@@ -42,5 +47,3 @@ while task not done:
 - Tailscale, node registry, multi-machine delegation
 - Telegram HITL
 - the dashboard node graph
-
-Those stay in the repo. They are not the path.
