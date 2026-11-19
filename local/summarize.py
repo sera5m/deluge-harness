@@ -1,10 +1,12 @@
-"""Pause the chat, ask a small model for a summary, resume.
+"""Pause the chat, ask bonsai for a summary, resume.
 
-Pattern from Project Replicant: a dedicated summarizer client, a fixed
-prompt, ChatML in, short text out. The small model is local (Ollama).
+Director is deepseek-r1:32b. Summarizer is digitsflow/bonsai-8b.
+After the summary, Engels compresses it to slots.
 """
 import json
 import urllib.request
+
+from local.roles import SUMMARIZER
 
 SUM_PROMPT = (
     "Summarize the following chat for a reasoner that will continue the task. "
@@ -13,7 +15,7 @@ SUM_PROMPT = (
     "Under 200 words."
 )
 
-def summarize(turns: list[dict], model: str = "qwen2.5:7b",
+def summarize(turns: list[dict], model: str = SUMMARIZER,
               host: str = "http://127.0.0.1:11434") -> str:
     body = "\n".join(f"{t.get('role','?')}: {t.get('content','')}" for t in turns)
     payload = json.dumps({
@@ -30,8 +32,7 @@ def summarize(turns: list[dict], model: str = "qwen2.5:7b",
         return json.loads(r.read()).get("response", "").strip()
 
 def maybe_compact(turns: list[dict], budget_chars: int = 12000,
-                  keep_tail: int = 4, model: str = "qwen2.5:7b") -> list[dict]:
-    """If the chat is over budget, pause, summarize the middle, keep the tail."""
+                  keep_tail: int = 4, model: str = SUMMARIZER) -> list[dict]:
     size = sum(len(t.get("content", "")) for t in turns)
     if size <= budget_chars or len(turns) <= keep_tail + 1:
         return turns
