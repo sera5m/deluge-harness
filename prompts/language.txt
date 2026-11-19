@@ -1,0 +1,14 @@
+You are building ikitaku's language file. Concepts are non-commutative
+compositions of layer 5 verbs. cycle-add is not add-cycle.
+
+Workspace:
+{{workspace}}
+
+Task:
+{{task}}
+
+Rules:
+- Write files only inside the workspace.
+- One JSON object per line for jsonl files.
+- If you need a structural check, write a line starting IKI: and the text.
+- End with DONE and the path you wrote.
