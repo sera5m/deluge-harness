@@ -1,0 +1,26 @@
+[
+  {
+    "id": "verbs",
+    "status": "open",
+    "prompt": "prompts/language.txt",
+    "task": "List 20 English verbs. For each, name the layer 5 outer verb (cycle, add, invert, compare, emit, absorb, filter, order, seek, wait, bound) and whether order would change the form. Write one JSON object per verb into workspace language/verbs.jsonl."
+  },
+  {
+    "id": "nouns",
+    "status": "open",
+    "prompt": "prompts/language.txt",
+    "task": "List 20 English nouns that name a structure (array, bag, tree, queue, stack, map, set, file, sensor, clock). Map each to a layer 5 verb it is the object of. Append to language/nouns.jsonl."
+  },
+  {
+    "id": "compose",
+    "status": "open",
+    "prompt": "prompts/language.txt",
+    "task": "From the verbs and nouns already written, emit 10 compositions where order matters (cycle-add vs add-cycle). Write language/compositions.jsonl. Mark any pair the model claims is commutative as discard."
+  },
+  {
+    "id": "graph",
+    "status": "open",
+    "prompt": "prompts/language.txt",
+    "task": "Assemble language/graph.json in the galaxy shape: nodes with id, rank, kind, label, english; links with source, target, rel. Rank 5 verbs, rank 4 forms, rank 3 words."
+  }
+]
