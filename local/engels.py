@@ -1,20 +1,17 @@
-"""Engels: structured slots, not prose.
-
-Pattern from Project Replicant. The summarizer writes a short text; Engels
-turns that text into slots a later turn can bind. Slots land in the
-workspace as JSON so the galaxy viewer can read them.
-"""
+"""Engels: structured slots, not prose. Runs on scythe."""
 import json
 import urllib.request
 from pathlib import Path
+
+from local.roles import SUMMARIZER, SUMMARIZER_HOST
 
 ENGELS_PROMPT = (
     "Turn the summary into JSON slots. Keys: goal, decisions (list), "
     "open (list), files (list), next. No prose outside the JSON."
 )
 
-def to_slots(summary: str, model: str = "digitsflow/bonsai-8b:latest",
-             host: str = "http://127.0.0.1:11434") -> dict:
+def to_slots(summary: str, model: str = SUMMARIZER,
+             host: str = SUMMARIZER_HOST) -> dict:
     payload = json.dumps({
         "model": model,
         "prompt": ENGELS_PROMPT + "\n\n" + summary,
