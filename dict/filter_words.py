@@ -1,27 +1,32 @@
-"""Step 2. Bonsai as a filter. Batches, not one word at a time.
+"""Step 2. DeepSeek thinking model as the filter.
 
-Keep: technical, scientific, engineering, mathematical, computing terms.
-Drop: proper names, brands, slang, food trends, place names, given names.
-One word at a time would not finish overnight. Batches of 40.
+Batches of 15 (inside the 10-20 range). The model is told to consider,
+then reply short. Think-tags are stripped before the JSON parse.
+
+On scythe (GTX 1660, 6 GB) use deepseek-r1:8b. The 32b stays on the laptop.
 """
 import json
+import re
 import urllib.request
 from pathlib import Path
 
 PROMPT = (
-    "You filter an English word list for an engineering reasoner. "
-    "Keep a word only if it is a technical, scientific, mathematical, "
-    "or computing term, or a plain structural word an engineer uses "
-    "(loop, array, force, voltage, derivative). "
-    "Drop proper names, brands, slang, place names, given names, "
-    "food trends, and anything useless outside engineering. "
-    "Reply with JSON: {\"keep\": [..], \"drop\": [..]}. No prose."
+    "Consider each word. Keep it only if it is a technical, scientific, "
+    "mathematical, or computing term, or a plain structural word an "
+    "engineer uses (loop, array, force, voltage, derivative). "
+    "Drop proper names, brands, slang, place names, given names, food "
+    "trends, and anything useless outside engineering. "
+    "After you consider, reply with only this JSON, nothing else: "
+    '{"keep": [..], "drop": [..]}. Short. No prose.'
 )
+
+def _strip_think(text: str) -> str:
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()
 
 def ask(batch: list[str], model: str, host: str) -> dict:
     payload = json.dumps({
         "model": model,
-        "prompt": PROMPT + "\n\n" + " ".join(batch),
+        "prompt": PROMPT + "\n\nwords: " + " ".join(batch),
         "stream": False,
         "format": "json",
     }).encode()
@@ -30,18 +35,18 @@ def ask(batch: list[str], model: str, host: str) -> dict:
         data=payload,
         headers={"Content-Type": "application/json"},
     )
-    with urllib.request.urlopen(req, timeout=180) as r:
-        raw = json.loads(r.read()).get("response", "{}")
+    with urllib.request.urlopen(req, timeout=300) as r:
+        raw = _strip_think(json.loads(r.read()).get("response", "{}"))
     try:
         return json.loads(raw)
     except json.JSONDecodeError:
         return {"keep": [], "drop": batch}
 
 def run(words: list[str], out: str = "dict/filteredwordIndex.txt",
-        model: str = "digitsflow/bonsai-8b:latest",
+        model: str = "deepseek-r1:8b",
         host: str = "http://127.0.0.1:11434",
-        batch: int = 40) -> Path:
-    kept: list[str] = []
+        batch: int = 15) -> Path:
+    kept = 0
     p = Path(out)
     p.parent.mkdir(parents=True, exist_ok=True)
     done = set(p.read_text().split()) if p.exists() else set()
@@ -49,10 +54,10 @@ def run(words: list[str], out: str = "dict/filteredwordIndex.txt",
     for i in range(0, len(todo), batch):
         chunk = todo[i:i + batch]
         res = ask(chunk, model, host)
-        kept.extend(w for w in res.get("keep", []) if w in chunk)
+        keep = [w for w in res.get("keep", []) if w in chunk]
         with p.open("a") as f:
-            for w in res.get("keep", []):
-                if w in chunk:
-                    f.write(w + "\n")
-        print(f"{i + len(chunk)}/{len(todo)} kept {len(kept)}")
+            for w in keep:
+                f.write(w + "\n")
+        kept += len(keep)
+        print(f"{i + len(chunk)}/{len(todo)} kept {kept}")
     return p
