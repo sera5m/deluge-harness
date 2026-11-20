@@ -1,17 +1,17 @@
 #!/bin/bash
 # Steps 1-4 on scythe. Step 5 is unset. Step 6 is the laptop, later.
+#   bash dict/overnight.sh
+#   bash dict/overnight.sh --model digitsflow/bonsai-8b:latest
 set -e
 cd "$(dirname "$0")/.."
+MODEL="${1:-deepseek-r1:8b}"
+[ "$1" = "--model" ] && MODEL="$2"
 
 echo "[1] word list"
 python -m dict.fetch_words
 
-echo "[2] bonsai filter (resumable)"
-python - <<'PY'
-from dict.fetch_words import load
-from dict.filter_words import run
-run(load())
-PY
+echo "[2] filter ($MODEL)"
+python -m dict.filter_words --model "$MODEL"
 
 echo "[3] backup"
 python -m dict.backup
