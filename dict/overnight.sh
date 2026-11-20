@@ -1,0 +1,27 @@
+#!/bin/bash
+# Steps 1-4 on scythe. Step 5 is unset. Step 6 is the laptop, later.
+set -e
+cd "$(dirname "$0")/.."
+
+echo "[1] word list"
+python -m dict.fetch_words
+
+echo "[2] bonsai filter (resumable)"
+python - <<'PY'
+from dict.fetch_words import load
+from dict.filter_words import run
+run(load())
+PY
+
+echo "[3] backup"
+python -m dict.backup
+
+echo "[4] wiktionary trim"
+K=/var/cache/ikitaku/kaikki.org-dictionary-English.jsonl
+if [ ! -f "$K" ]; then
+  echo "missing $K — download the Kaikki English JSONL first"
+  exit 1
+fi
+python -m dict.wiktionary "$K"
+
+echo "[5] unset — stop here"
