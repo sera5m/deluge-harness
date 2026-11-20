@@ -1,9 +1,12 @@
-"""Step 2. DeepSeek thinking model as the filter.
+"""Step 2. Filter. Model is a flag.
 
-Batches of 15. Reply length is capped so a long think cannot hang the
-run. A timeout retries twice, then the batch is logged and skipped.
-Already-written words are never redone.
+  python -m dict.filter_words --model deepseek-r1:8b
+  python -m dict.filter_words --model digitsflow/bonsai-8b:latest
+
+Batches of 15. Reply length is capped. A timeout retries twice, then
+the batch is logged and skipped. Already-written words are never redone.
 """
+import argparse
 import json
 import re
 import urllib.error
@@ -74,3 +77,17 @@ def run(words: list[str], out: str = "dict/filteredwordIndex.txt",
         kept += len(keep)
         print(f"{i + len(chunk)}/{len(todo)} kept {kept}")
     return p
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--model", default="deepseek-r1:8b")
+    ap.add_argument("--host", default="http://127.0.0.1:11434")
+    ap.add_argument("--words", default="dict/words_alpha.txt")
+    ap.add_argument("--out", default="dict/filteredwordIndex.txt")
+    ap.add_argument("--batch", type=int, default=15)
+    args = ap.parse_args()
+    words = [w.strip().lower() for w in Path(args.words).read_text().splitlines() if w.strip()]
+    run(words, out=args.out, model=args.model, host=args.host, batch=args.batch)
+
+if __name__ == "__main__":
+    main()
